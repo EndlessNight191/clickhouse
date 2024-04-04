@@ -1,6 +1,11 @@
 const { Kafka } = require('kafkajs');
 const { v4 } = require('uuid');
 
+// total messages
+const totalCount = 2_500_000;
+// total messages
+
+
 // Создаем экземпляр клиента Kafka
 const kafka = new Kafka({
   clientId: '1',
@@ -127,7 +132,7 @@ const generateMessageData = () => {
 // Подключаемся к Kafka и отправляем сообщения
 const run = async () => {
   await producer.connect();
-  for (let i = 0; i < 2_500_000; i++) {
+  for (let i = 0; i < totalCount; i++) {
     const messageData = generateMessageData();
     await sendMessage('analytics', JSON.stringify(messageData));
     console.log(`Sent message ${i + 1}`);
