@@ -45,4 +45,4 @@ CREATE TABLE IF NOT EXISTS user_data_queue (
             kafka_group_name = 'analytics',
             kafka_format = 'JSONEachRow',
             kafka_num_consumers = 1,
-            kafka_max_block_size = 1;
+            kafka_max_block_size = 1048576;
