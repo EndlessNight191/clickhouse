@@ -1,0 +1,100 @@
+CREATE TABLE IF NOT EXISTS analytics_user_data_queue (
+  raw String
+) ENGINE = Kafka SETTINGS
+            kafka_broker_list = 'localhost:9092',
+            kafka_topic_list = 'analytics_.analytics.userData',
+            kafka_group_name = 'analytics',
+            kafka_format = 'JSONAsString',
+            kafka_num_consumers = 1,
+            kafka_max_block_size = 1048576;
+
+CREATE TABLE IF NOT EXISTS analytics_user_data (
+  raw String
+) ENGINE = MergeTree()
+ORDER BY raw;
+
+CREATE MATERIALIZED VIEW IF NOT EXISTS analytics_user_data_consumer TO analytics_user_data
+AS SELECT * FROM analytics_user_data_queue;
+
+INSERT INTO analytics_user_data (
+    uuid,
+    createdAt,
+    dateAction,
+    ban,
+    reg,
+    dateReg,
+    idClient,
+    email,
+    clickId,
+    utmSource,
+    utmMedium,
+    utmCampaign,
+    wd,
+    wdSum,
+    dep,
+    depSum,
+    ftdSum,
+    dateFtd,
+    sDepSum,
+    dateSDep,
+    tDepSum,
+    dateTDep,
+    idOperation,
+    pSystemLag,
+    pSystemId,
+    dateFirstSpin,
+    newGamer,
+    gamer,
+    gameUuid,
+    bets,
+    wins,
+    refunds,
+    rollbacks,
+    ggr,
+    idTicket,
+    countOfSpins,
+    missInGame,
+    currency,
+    currencyRate
+)
+SELECT
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'uuid') AS uuid,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'createdAt') AS createdAt,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'dateAction') AS dateAction,
+    toUInt8OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'ban')) AS ban,
+    toUInt8OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'reg')) AS reg,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'dateReg') AS dateReg,
+    toUInt64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'idClient')) AS idClient,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'email') AS email,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'clickId') AS clickId,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'utmSource') AS utmSource,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'utmMedium') AS utmMedium,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'utmCampaign') AS utmCampaign,
+    toUInt8OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'wd')) AS wd,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'wdSum')) AS wdSum,
+    toUInt8OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'dep')) AS dep,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'depSum')) AS depSum,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'ftdSum')) AS ftdSum,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'dateFtd') AS dateFtd,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'sDepSum')) AS sDepSum,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'dateSDep') AS dateSDep,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'tDepSum')) AS tDepSum,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'dateTDep') AS dateTDep,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'idOperation') AS idOperation,
+    toInt32OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'pSystemLag')) AS pSystemLag,
+    toInt32OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'pSystemId')) AS pSystemId,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'dateFirstSpin') AS dateFirstSpin,
+    toInt32OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'newGamer')) AS newGamer,
+    toInt32OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'gamer')) AS gamer,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'gameUuid') AS gameUuid,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'bets')) AS bets,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'wins')) AS wins,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'refunds')) AS refunds,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'rollbacks')) AS rollbacks,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'ggr')) AS ggr,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'idTicket') AS idTicket,
+    toInt32OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'countOfSpins')) AS countOfSpins,
+    toInt32OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'missInGame')) AS missInGame,
+    JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'currency') AS currency,
+    toFloat64OrNull(JSONExtractString(replaceRegexpOne(raw, '"sequence":\s*"\[null,"[^"]*"\]",', ''), 'payload', 'after', 'currencyRate')) AS currencyRate
+FROM analytics_user_data_consumer_string;
