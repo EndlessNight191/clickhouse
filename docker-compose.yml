@@ -56,9 +56,9 @@ services:
     ports:
       - "8084:8080"
     environment:
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2182
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper_click:2182
       KAFKA_CLUSTERS_0_NAME: local2
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: 'kafka:29092'
 
   debezium:
     image: debezium/connect:2.6
@@ -85,7 +85,7 @@ services:
   #   depends_on:
   #     - broker
 
-volumes:
+# volumes:
   # zookeeper_data:
   #   driver: local
   #   driver_opts:
